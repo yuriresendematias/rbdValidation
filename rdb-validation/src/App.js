@@ -68,6 +68,8 @@ export default function Album() {
   const [dataLoaded, setDataLoaded] = useState(null);
   const [failureMeanValue, setFailuereMeanValue] = useState(null);
   const [repairMeanValue, setRepairMeanValueMeanValue] = useState(null);
+  const [uptime, setUptime] = useState(null);
+  const [downtime, setDowntime] = useState(null);
 
   let fileReader;
 
@@ -77,6 +79,10 @@ export default function Album() {
     var parser = new DOMParser();
     var xmlDoc = parser.parseFromString(content, "text/xml");
 
+    const availabilityFloat = parseFloat(xmlDoc.getElementsByTagName("availability")[0].childNodes[0].nodeValue);
+
+    setUptime(availabilityFloat * 8760);
+    setDowntime(((availabilityFloat * 8760)-8760)*-1);
     const resultado = {
       availability:
         xmlDoc.getElementsByTagName("availability")[0].childNodes[0].nodeValue,
@@ -114,7 +120,10 @@ export default function Album() {
     setSelectedFile(event.target.files[0]);
   };
 
-  const handleSubmission = () => {};
+  const handleSubmission = () => {
+    alert(failureMeanValue + " " +repairMeanValue)
+
+  };
 
   const resetFile = () => {
     setSelectedFile(null);
@@ -161,57 +170,50 @@ export default function Album() {
                   padding: 10,
                 }}
               >
-                <Grid item sm={4} xs={12}>
-                  <Typography component="h1" variant="h6" align="center">
+                <Grid item sm={4} xs={12} style={{alignItems: 'flex-start', justifyContent: 'flex-start'}}>
+                  <Typography component="h1" variant="h6" >
                     {`Availability: ${dataLoaded.availability}`}
                   </Typography>
-                  <Typography component="h1" variant="h6" align="center">
-                    {`mttr: ${dataLoaded.mttr}`}
+                  <Typography component="h1" variant="h6">
+                    {`Mean Time to Repair: ${dataLoaded.mttr}`}
                   </Typography>
-                  <Typography component="h1" variant="h6" align="center">
-                    {`mttf: ${dataLoaded.mttf}`}
+                  <Typography component="h1" variant="h6">
+                    {`Mean Time To Failure: ${dataLoaded.mttf}`}
                   </Typography>
-                  <Typography component="h1" variant="h6" align="center">
+                  <Typography component="h1" variant="h6">
                     {`downtimeUnit: ${dataLoaded.downtimeUnit}`}
                   </Typography>
-                  <Typography component="h1" variant="h6" align="center">
+                  <Typography component="h1" variant="h6">
                     {`uptimeUnit: ${dataLoaded.uptimeUnit}`}
                   </Typography>
-                  <Typography component="h1" variant="h6" align="center">
+                  <Typography component="h1" variant="h6">
                     {`samplingPoints: ${dataLoaded.samplingPoints}`}
                   </Typography>
-                  <Typography component="h1" variant="h6" align="center">
+                  <Typography component="h1" variant="h6">
                     {`showDowntime: ${dataLoaded.showDowntime}`}
                   </Typography>
-                  <Typography component="h1" variant="h6" align="center">
+                  <Typography component="h1" variant="h6">
                     {`showUptime: ${dataLoaded.showUptime}`}
+                  </Typography>
+                  <Typography component="h1" variant="h6">
+                    {`Uptime: ${uptime}`}
+                  </Typography>
+                  <Typography component="h1" variant="h6">
+                    {`Downtime: ${downtime}`}
                   </Typography>
                 </Grid>
 
                 <Grid item sm={8} xs={12} style={{ alignSelf: "center" }}>
                   <TextField
                     fullWidth
-                    helperText="Informe o valor médio da distribuição de falha"
+                    helperText="Enter the number of repetitions"
                     id="meanValue"
-                    label="Valor médio da distribuição de falha"
+                    label="Number of repetitions"
                     size="small"
                     onChange={(e) => setFailuereMeanValue(e.target.value)}
                     value={failureMeanValue}
                     variant="outlined"
-                  />
-                  <TextField
-                    fullWidth
-                    helperText="Informe o valor médio da distribuição de falha"
-                    id="meanValue"
-                    label="Valor médio da distribuição de falha"
-                    size="small"
-                    onChange={(e) =>
-                      setRepairMeanValueMeanValue(e.target.value)
-                    }
-                    value={repairMeanValue}
-                    variant="outlined"
-                    style={{ marginTop: 20 }}
-                  />
+                  />                 
 
                   <div className={classes.heroButtons}>
                     <Grid container spacing={2} justify="center">
@@ -238,29 +240,35 @@ export default function Album() {
                 </Grid>
 
                 <Grid item sm={4} xs={12}>
-                  <Typography component="h1" variant="h6" align="center">
+                  <Typography component="h1" variant="h6" align="right">
                     {`Availability: ${dataLoaded.availability}`}
                   </Typography>
-                  <Typography component="h1" variant="h6" align="center">
-                    {`mttr: ${dataLoaded.mttr}`}
+                  <Typography component="h1" variant="h6" align="right">
+                    {`Mean Time to Repair: ${dataLoaded.mttr}`}
                   </Typography>
-                  <Typography component="h1" variant="h6" align="center">
-                    {`mttf: ${dataLoaded.mttf}`}
+                  <Typography component="h1" variant="h6" align="right">
+                    {`Mean Time To Failure: ${dataLoaded.mttf}`}
                   </Typography>
-                  <Typography component="h1" variant="h6" align="center">
+                  <Typography component="h1" variant="h6" align="right">
                     {`downtimeUnit: ${dataLoaded.downtimeUnit}`}
                   </Typography>
-                  <Typography component="h1" variant="h6" align="center">
+                  <Typography component="h1" variant="h6" align="right">
                     {`uptimeUnit: ${dataLoaded.uptimeUnit}`}
                   </Typography>
-                  <Typography component="h1" variant="h6" align="center">
+                  <Typography component="h1" variant="h6" align="right">
                     {`samplingPoints: ${dataLoaded.samplingPoints}`}
                   </Typography>
-                  <Typography component="h1" variant="h6" align="center">
+                  <Typography component="h1" variant="h6" align="right">
                     {`showDowntime: ${dataLoaded.showDowntime}`}
                   </Typography>
-                  <Typography component="h1" variant="h6" align="center">
+                  <Typography component="h1" variant="h6" align="right">
                     {`showUptime: ${dataLoaded.showUptime}`}
+                  </Typography>
+                  <Typography component="h1" variant="h6" align="right">
+                    {`Uptime: ${uptime}`}
+                  </Typography>
+                  <Typography component="h1" variant="h6" align="right">
+                    {`Downtime: ${downtime}`}
                   </Typography>
                 </Grid>
               </div>
