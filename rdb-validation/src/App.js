@@ -64,12 +64,17 @@ const useStyles = makeStyles((theme) => ({
 export default function Album() {
   const classes = useStyles();
   const [selectedFile, setSelectedFile] = useState();
+  const [selectedDataFile, setSelectedDataFile] = useState();
   const [isFilePicked, setIsFilePicked] = useState(false);
   const [dataLoaded, setDataLoaded] = useState(null);
+  const [dataCompleteLoaded, setDataCompleteLoaded] = useState(false);
   const [failureMeanValue, setFailuereMeanValue] = useState(null);
   const [repairMeanValue, setRepairMeanValueMeanValue] = useState(null);
+  const [uptime, setUptime] = useState(null);
+  const [downtime, setDowntime] = useState(null);
 
   let fileReader;
+  let fileReaderData;
 
   const handleFileRead = (e) => {
     const content = fileReader.result;
@@ -77,6 +82,12 @@ export default function Album() {
     var parser = new DOMParser();
     var xmlDoc = parser.parseFromString(content, "text/xml");
 
+    const availabilityFloat = parseFloat(
+      xmlDoc.getElementsByTagName("availability")[0].childNodes[0].nodeValue
+    );
+
+    setUptime(availabilityFloat * 8760);
+    setDowntime((availabilityFloat * 8760 - 8760) * -1);
     const resultado = {
       availability:
         xmlDoc.getElementsByTagName("availability")[0].childNodes[0].nodeValue,
@@ -100,7 +111,38 @@ export default function Album() {
         xmlDoc.getElementsByTagName("showUptime")[0].childNodes[0].nodeValue,
     };
     setDataLoaded(resultado);
-  };
+  };  
+
+  const handleFileDataRead = (e) => {
+    const content = fileReaderData.result;
+
+    var parser = new DOMParser();
+    var xmlDoc = parser.parseFromString(content, "text/xml");
+    const texto = xmlDoc.documentElement.textContent;
+    console.log(texto)
+    //const jsonObj = JSON.parse(texto);
+    //console.log(jsonObj)
+
+    const blocks = xmlDoc.getElementsByTagName("org.modcs.tools.rbd.blocks.BlockExponential")[0]
+    const nameBlock1 = blocks.getElementsByTagName("name")[0].childNodes[0].nodeValue
+
+    const blockIni = blocks.getElementsByTagName("fatherBlock")[0]
+    console.log(typeof(blockIni.getElementsByTagName("blocks")[0]))    
+
+    const block1 = {
+      name: blocks.getElementsByTagName("name")[0].childNodes[0].nodeValue,
+      failureRate: blocks.getElementsByTagName("failureRate")[0].childNodes[0].nodeValue,
+      repairRate: blocks.getElementsByTagName("repairRate")[0].childNodes[0].nodeValue,
+    }
+
+    console.log(block1)
+
+    const loadBlock = (block) => {
+
+    }
+
+    console.log(xmlDoc)
+  }
 
   useEffect(() => {
     if (selectedFile) {
@@ -110,11 +152,25 @@ export default function Album() {
     }
   }, [selectedFile]);
 
+  useEffect(() => {
+    if(selectedDataFile){
+      fileReaderData = new FileReader();
+      fileReaderData.onloadend = handleFileDataRead;
+      fileReaderData.readAsText(selectedDataFile)
+    }
+  }, [selectedDataFile])
+
   const changeHandler = (event) => {
     setSelectedFile(event.target.files[0]);
   };
 
-  const handleSubmission = () => {};
+  const changeHandlerData = (event) => {
+    setSelectedDataFile(event.target.files[0]);
+  };
+
+  const handleSubmission = () => {
+    alert(failureMeanValue + " " + repairMeanValue);
+  };
 
   const resetFile = () => {
     setSelectedFile(null);
@@ -144,7 +200,7 @@ export default function Album() {
           >
             RBD model validation
           </Typography>
-          {dataLoaded ? (
+          {dataLoaded && dataCompleteLoaded ? (
             <Paper
               style={{
                 display: "flex",
@@ -161,56 +217,57 @@ export default function Album() {
                   padding: 10,
                 }}
               >
-                <Grid item sm={4} xs={12}>
-                  <Typography component="h1" variant="h6" align="center">
+                <Grid
+                  item
+                  sm={4}
+                  xs={12}
+                  style={{
+                    alignItems: "flex-start",
+                    justifyContent: "flex-start",
+                  }}
+                >
+                  <Typography component="h1" variant="h6">
                     {`Availability: ${dataLoaded.availability}`}
                   </Typography>
-                  <Typography component="h1" variant="h6" align="center">
-                    {`mttr: ${dataLoaded.mttr}`}
+                  <Typography component="h1" variant="h6">
+                    {`Mean Time to Repair: ${dataLoaded.mttr}`}
                   </Typography>
-                  <Typography component="h1" variant="h6" align="center">
-                    {`mttf: ${dataLoaded.mttf}`}
+                  <Typography component="h1" variant="h6">
+                    {`Mean Time To Failure: ${dataLoaded.mttf}`}
                   </Typography>
-                  <Typography component="h1" variant="h6" align="center">
+                  <Typography component="h1" variant="h6">
                     {`downtimeUnit: ${dataLoaded.downtimeUnit}`}
                   </Typography>
-                  <Typography component="h1" variant="h6" align="center">
+                  <Typography component="h1" variant="h6">
                     {`uptimeUnit: ${dataLoaded.uptimeUnit}`}
                   </Typography>
-                  <Typography component="h1" variant="h6" align="center">
+                  <Typography component="h1" variant="h6">
                     {`samplingPoints: ${dataLoaded.samplingPoints}`}
                   </Typography>
-                  <Typography component="h1" variant="h6" align="center">
+                  <Typography component="h1" variant="h6">
                     {`showDowntime: ${dataLoaded.showDowntime}`}
                   </Typography>
-                  <Typography component="h1" variant="h6" align="center">
+                  <Typography component="h1" variant="h6">
                     {`showUptime: ${dataLoaded.showUptime}`}
+                  </Typography>
+                  <Typography component="h1" variant="h6">
+                    {`Uptime: ${uptime}`}
+                  </Typography>
+                  <Typography component="h1" variant="h6">
+                    {`Downtime: ${downtime}`}
                   </Typography>
                 </Grid>
 
                 <Grid item sm={8} xs={12} style={{ alignSelf: "center" }}>
                   <TextField
                     fullWidth
-                    helperText="Informe o valor médio da distribuição de falha"
+                    helperText="Enter the number of repetitions"
                     id="meanValue"
-                    label="Valor médio da distribuição de falha"
+                    label="Number of repetitions"
                     size="small"
                     onChange={(e) => setFailuereMeanValue(e.target.value)}
                     value={failureMeanValue}
                     variant="outlined"
-                  />
-                  <TextField
-                    fullWidth
-                    helperText="Informe o valor médio da distribuição de falha"
-                    id="meanValue"
-                    label="Valor médio da distribuição de falha"
-                    size="small"
-                    onChange={(e) =>
-                      setRepairMeanValueMeanValue(e.target.value)
-                    }
-                    value={repairMeanValue}
-                    variant="outlined"
-                    style={{ marginTop: 20 }}
                   />
 
                   <div className={classes.heroButtons}>
@@ -238,33 +295,64 @@ export default function Album() {
                 </Grid>
 
                 <Grid item sm={4} xs={12}>
-                  <Typography component="h1" variant="h6" align="center">
+                  <Typography component="h1" variant="h6" align="right">
                     {`Availability: ${dataLoaded.availability}`}
                   </Typography>
-                  <Typography component="h1" variant="h6" align="center">
-                    {`mttr: ${dataLoaded.mttr}`}
+                  <Typography component="h1" variant="h6" align="right">
+                    {`Mean Time to Repair: ${dataLoaded.mttr}`}
                   </Typography>
-                  <Typography component="h1" variant="h6" align="center">
-                    {`mttf: ${dataLoaded.mttf}`}
+                  <Typography component="h1" variant="h6" align="right">
+                    {`Mean Time To Failure: ${dataLoaded.mttf}`}
                   </Typography>
-                  <Typography component="h1" variant="h6" align="center">
+                  <Typography component="h1" variant="h6" align="right">
                     {`downtimeUnit: ${dataLoaded.downtimeUnit}`}
                   </Typography>
-                  <Typography component="h1" variant="h6" align="center">
+                  <Typography component="h1" variant="h6" align="right">
                     {`uptimeUnit: ${dataLoaded.uptimeUnit}`}
                   </Typography>
-                  <Typography component="h1" variant="h6" align="center">
+                  <Typography component="h1" variant="h6" align="right">
                     {`samplingPoints: ${dataLoaded.samplingPoints}`}
                   </Typography>
-                  <Typography component="h1" variant="h6" align="center">
+                  <Typography component="h1" variant="h6" align="right">
                     {`showDowntime: ${dataLoaded.showDowntime}`}
                   </Typography>
-                  <Typography component="h1" variant="h6" align="center">
+                  <Typography component="h1" variant="h6" align="right">
                     {`showUptime: ${dataLoaded.showUptime}`}
+                  </Typography>
+                  <Typography component="h1" variant="h6" align="right">
+                    {`Uptime: ${uptime}`}
+                  </Typography>
+                  <Typography component="h1" variant="h6" align="right">
+                    {`Downtime: ${downtime}`}
                   </Typography>
                 </Grid>
               </div>
             </Paper>
+          ) : !dataLoaded ? (
+            <Container maxWidth="sm">
+              <Typography
+                variant="h5"
+                align="center"
+                color="textSecondary"
+                paragraph
+              >
+                Select the result of the RBD model xml file
+              </Typography>
+              <link
+                href="https://cdnjs.cloudflare.com/ajax/libs/ratchet/2.0.2/css/ratchet.css"
+                rel="stylesheet"
+              />
+              <label for="file" class="btn btn-primary btn-block btn-outlined">
+                Select the .xml
+              </label>
+              <input
+                type="file"
+                id="file"
+                name="file"
+                onChange={changeHandler}
+                style={{ display: "none" }}
+              />
+            </Container>
           ) : (
             <Container maxWidth="sm">
               <Typography
@@ -273,20 +361,22 @@ export default function Album() {
                 color="textSecondary"
                 paragraph
               >
-                Select the RBD model xml file
+                Select the RBD model xml fileeeeeeeeeeeeee
               </Typography>
               <link
                 href="https://cdnjs.cloudflare.com/ajax/libs/ratchet/2.0.2/css/ratchet.css"
                 rel="stylesheet"
               />
-              <label
-                for="file"
-                class="btn btn-primary btn-block btn-outlined"
-              >
+              <label for="file" class="btn btn-primary btn-block btn-outlined">
                 Select the .xml
               </label>
-              <input type="file" id="file"  name="file"  onChange={changeHandler} style={{display: "none"}}/>
-
+              <input
+                type="file"
+                id="file"
+                name="file"
+                onChange={changeHandlerData}
+                style={{ display: "none" }}
+              />
             </Container>
           )}
         </div>

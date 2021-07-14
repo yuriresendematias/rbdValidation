@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="Bloco.js"></script>
+    <script src="Diagrama.js"></script>
+    <script src="ArvoreBlocos.js"></script>
+
+    <title>Teste</title>
+    <script>
+        a = new Bloco(1, 2, 3)
+        b = new Bloco(2,2,2)
+        c = new Bloco(3,3,3)
+        d = new Bloco(3,3,4)
+        e = new Bloco(3,3,5)
+        f = new Bloco(3,3,6)
+        g = new Bloco(3,3,7)
+        h = new Bloco(3,3,8)
+
+        diagrama = new Diagrama()
+        diagrama.iniciar(a)
+        
+        diagrama.adicionarBlocoSerie(b,a)
+        diagrama.adicionarBlocoSerie(c,b)
+        diagrama.adicionarBlocoParalelo(d,c)
+        diagrama.adicionarBlocoParalelo(e,d.getPai())   //passando a arvore como segundo parametro, 
+                                                        //e está em paralelo com d e c
+        
+        diagrama.adicionarBlocoParalelo(f,e)            //passando o bloco como segundo parametro
+                                                        //f está em paralelo com e, e a "malha" que envolve os dois
+                                                        //está em paralelo com c e d
+        diagrama.adicionarBlocoSerie(h,b)
+        diagrama.adicionarBlocoSerie(g,d)
+
+        
+        diagrama.inicio.filhos.forEach(element => {
+            console.log(element)
+        });
+        
+        
+
+
+    </script>
+</head>
+<body>
+    
+</body>
+</html>
+
+
+
+
