@@ -1,4 +1,6 @@
-class Bloco{
+import ArvoreBlocos from './ArvoreBlocos';
+
+export default class Bloco{
 
     constructor(mttf, mttr){
         this.id = 0

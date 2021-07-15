@@ -1,3 +1,5 @@
+import ArvoreBlocos from './ArvoreBlocos';
+import Bloco from './Bloco';
 class Diagrama{
 
     constructor(){
@@ -105,3 +107,5 @@ class Diagrama{
         return resultado
     }
 }
+
+export default Diagrama;

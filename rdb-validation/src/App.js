@@ -13,15 +13,19 @@ import Typography from "@material-ui/core/Typography";
 import { makeStyles } from "@material-ui/core/styles";
 import Container from "@material-ui/core/Container";
 import Link from "@material-ui/core/Link";
-
+import Dialog from './Dialog';
+import RecursiveTreeView from "./RecursiveTreeView";
 import { Grid, TextField } from "@material-ui/core";
+import Diagrama from './Diagrama';
+import Bloco from './Bloco';
+
 
 function Copyright() {
   return (
     <Typography variant="body2" color="textSecondary" align="center">
       {"Copyright © "}
       <Link color="inherit" href="https://material-ui.com/">
-        UNAME
+        UFAPE
       </Link>{" "}
       {new Date().getFullYear()}
       {"."}
@@ -35,10 +39,12 @@ const useStyles = makeStyles((theme) => ({
   },
   heroContent: {
     backgroundColor: theme.palette.background.paper,
-    padding: theme.spacing(8, 0, 6),
+    padding: theme.spacing(2, 0, 6),
   },
   heroButtons: {
-    marginTop: theme.spacing(4),
+    flexDirection: 'column',
+    justifyContent: 'center',
+    marginLeft: theme.spacing(8),
   },
   cardGrid: {
     paddingTop: theme.spacing(8),
@@ -72,6 +78,33 @@ export default function Album() {
   const [repairMeanValue, setRepairMeanValueMeanValue] = useState(null);
   const [uptime, setUptime] = useState(null);
   const [downtime, setDowntime] = useState(null);
+
+  const diagrama = new Diagrama();
+  const [blocoAnterior, setBlocoAnterior] = useState(null);
+
+  const criarBloco = (mttr, mttf, tipo) => {
+    const bloco = new Bloco(1, mttr, mttf);
+    console.log("TIPOO", tipo)
+    console.log("ANTERIOOOR", blocoAnterior)
+
+    if (blocoAnterior == null) {
+      diagrama.iniciar(bloco);
+      setBlocoAnterior(bloco);
+    } else {
+      if (tipo == 'series') {
+        diagrama.adicionarBlocoSerie(bloco, blocoAnterior);
+      } else {
+        diagrama.adicionarBlocoParalelo(bloco, blocoAnterior.getPai());
+      }
+      setBlocoAnterior(bloco);
+    }
+    diagrama.inicio.filhos.forEach(element => {
+      console.log(element)
+    });
+    console.log(diagrama)
+
+    console.log("AAAAAAAAAAAAA")
+  }
 
   let fileReader;
   let fileReaderData;
@@ -111,7 +144,7 @@ export default function Album() {
         xmlDoc.getElementsByTagName("showUptime")[0].childNodes[0].nodeValue,
     };
     setDataLoaded(resultado);
-  };  
+  };
 
   const handleFileDataRead = (e) => {
     const content = fileReaderData.result;
@@ -128,7 +161,7 @@ export default function Album() {
     const nameBlock1 = blocks.getElementsByTagName("name")[0].childNodes[0].nodeValue
 
     const blockIni = blocks.getElementsByTagName("fatherBlock")[0]
-    console.log(typeof(blockIni.getElementsByTagName("blocks")[0]))    
+    console.log(typeof (blockIni.getElementsByTagName("blocks")[0]))
 
     const block1 = {
       name: blocks.getElementsByTagName("name")[0].childNodes[0].nodeValue,
@@ -154,7 +187,7 @@ export default function Album() {
   }, [selectedFile]);
 
   useEffect(() => {
-    if(selectedDataFile){
+    if (selectedDataFile) {
       fileReaderData = new FileReader();
       fileReaderData.onloadend = handleFileDataRead;
       fileReaderData.readAsText(selectedDataFile)
@@ -192,194 +225,44 @@ export default function Album() {
       <main>
         {/* Hero unit */}
         <div className={classes.heroContent}>
-          <Typography
-            component="h1"
-            variant="h3"
-            align="center"
-            color="textPrimary"
-            gutterBottom
-          >
-            RBD model validation
-          </Typography>
-          {dataLoaded && dataCompleteLoaded ? (
-            <Paper
-              style={{
-                display: "flex",
-                alignItems: "center",
-                flexDirection: "column",
-                padding: 10,
-              }}
-            >
-              <div
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  flexDirection: "row",
-                  padding: 10,
-                }}
-              >
-                <Grid
-                  item
-                  sm={4}
-                  xs={12}
-                  style={{
-                    alignItems: "flex-start",
-                    justifyContent: "flex-start",
-                  }}
-                >
-                  <Typography component="h1" variant="h6">
-                    {`Availability: ${dataLoaded.availability}`}
-                  </Typography>
-                  <Typography component="h1" variant="h6">
-                    {`Mean Time to Repair: ${dataLoaded.mttr}`}
-                  </Typography>
-                  <Typography component="h1" variant="h6">
-                    {`Mean Time To Failure: ${dataLoaded.mttf}`}
-                  </Typography>
-                  <Typography component="h1" variant="h6">
-                    {`downtimeUnit: ${dataLoaded.downtimeUnit}`}
-                  </Typography>
-                  <Typography component="h1" variant="h6">
-                    {`uptimeUnit: ${dataLoaded.uptimeUnit}`}
-                  </Typography>
-                  <Typography component="h1" variant="h6">
-                    {`samplingPoints: ${dataLoaded.samplingPoints}`}
-                  </Typography>
-                  <Typography component="h1" variant="h6">
-                    {`showDowntime: ${dataLoaded.showDowntime}`}
-                  </Typography>
-                  <Typography component="h1" variant="h6">
-                    {`showUptime: ${dataLoaded.showUptime}`}
-                  </Typography>
-                  <Typography component="h1" variant="h6">
-                    {`Uptime: ${uptime}`}
-                  </Typography>
-                  <Typography component="h1" variant="h6">
-                    {`Downtime: ${downtime}`}
-                  </Typography>
-                </Grid>
 
-                <Grid item sm={8} xs={12} style={{ alignSelf: "center" }}>
-                  <TextField
-                    fullWidth
-                    helperText="Enter the number of repetitions"
-                    id="meanValue"
-                    label="Number of repetitions"
-                    size="small"
-                    onChange={(e) => setFailuereMeanValue(e.target.value)}
-                    value={failureMeanValue}
-                    variant="outlined"
+          <div style={{ display: 'flex', justifyContent: 'center' }}>
+            <RecursiveTreeView />
+            <div className={classes.heroButtons}>
+              <Grid container sm={8} xs={12} style={{ alignSelf: "center" }}>
+                <TextField
+                  fullWidth
+                  helperText="Enter the number of repetitions"
+                  id="meanValue"
+                  label="Number of repetitions"
+                  size="small"
+                  onChange={(e) => setFailuereMeanValue(e.target.value)}
+                  value={failureMeanValue}
+                  variant="outlined"
+                />
+              </Grid>
+              <Grid container spacing={1} justify="center">
+                <Grid item>
+                  <Button
+                    onClick={handleSubmission}
+                    variant="contained"
+                    color="primary"
+                  >
+                    Execute
+                  </Button>
+                </Grid>
+                <Grid item>
+                  <Dialog
+                    criarBloco={criarBloco}
                   />
-
-                  <div className={classes.heroButtons}>
-                    <Grid container spacing={2} justify="center">
-                      <Grid item>
-                        <Button
-                          onClick={handleSubmission}
-                          variant="contained"
-                          color="primary"
-                        >
-                          Execute
-                        </Button>
-                      </Grid>
-                      <Grid item>
-                        <Button
-                          onClick={resetFile}
-                          variant="outlined"
-                          color="primary"
-                        >
-                          Reload file
-                        </Button>
-                      </Grid>
-                    </Grid>
-                  </div>
                 </Grid>
+              </Grid>
+            </div>
 
-                <Grid item sm={4} xs={12}>
-                  <Typography component="h1" variant="h6" align="right">
-                    {`Availability: ${dataLoaded.availability}`}
-                  </Typography>
-                  <Typography component="h1" variant="h6" align="right">
-                    {`Mean Time to Repair: ${dataLoaded.mttr}`}
-                  </Typography>
-                  <Typography component="h1" variant="h6" align="right">
-                    {`Mean Time To Failure: ${dataLoaded.mttf}`}
-                  </Typography>
-                  <Typography component="h1" variant="h6" align="right">
-                    {`downtimeUnit: ${dataLoaded.downtimeUnit}`}
-                  </Typography>
-                  <Typography component="h1" variant="h6" align="right">
-                    {`uptimeUnit: ${dataLoaded.uptimeUnit}`}
-                  </Typography>
-                  <Typography component="h1" variant="h6" align="right">
-                    {`samplingPoints: ${dataLoaded.samplingPoints}`}
-                  </Typography>
-                  <Typography component="h1" variant="h6" align="right">
-                    {`showDowntime: ${dataLoaded.showDowntime}`}
-                  </Typography>
-                  <Typography component="h1" variant="h6" align="right">
-                    {`showUptime: ${dataLoaded.showUptime}`}
-                  </Typography>
-                  <Typography component="h1" variant="h6" align="right">
-                    {`Uptime: ${uptime}`}
-                  </Typography>
-                  <Typography component="h1" variant="h6" align="right">
-                    {`Downtime: ${downtime}`}
-                  </Typography>
-                </Grid>
-              </div>
-            </Paper>
-          ) : !dataLoaded ? (
-            <Container maxWidth="sm">
-              <Typography
-                variant="h5"
-                align="center"
-                color="textSecondary"
-                paragraph
-              >
-                Select the result of the RBD model xml file
-              </Typography>
-              <link
-                href="https://cdnjs.cloudflare.com/ajax/libs/ratchet/2.0.2/css/ratchet.css"
-                rel="stylesheet"
-              />
-              <label for="file" class="btn btn-primary btn-block btn-outlined">
-                Select the .xml
-              </label>
-              <input
-                type="file"
-                id="file"
-                name="file"
-                onChange={changeHandler}
-                style={{ display: "none" }}
-              />
-            </Container>
-          ) : (
-            <Container maxWidth="sm">
-              <Typography
-                variant="h5"
-                align="center"
-                color="textSecondary"
-                paragraph
-              >
-                Select the RBD model xml fileeeeeeeeeeeeee
-              </Typography>
-              <link
-                href="https://cdnjs.cloudflare.com/ajax/libs/ratchet/2.0.2/css/ratchet.css"
-                rel="stylesheet"
-              />
-              <label for="file" class="btn btn-primary btn-block btn-outlined">
-                Select the .xml
-              </label>
-              <input
-                type="file"
-                id="file"
-                name="file"
-                onChange={changeHandlerData}
-                style={{ display: "none" }}
-              />
-            </Container>
-          )}
+
+          </div>
+          {/* ) : !dataLoaded ? (
+             } */}
         </div>
       </main>
 

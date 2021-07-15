@@ -1,3 +1,5 @@
+import Bloco from './Bloco';
+
 class ArvoreBlocos{
 
     constructor (tipo){
@@ -24,7 +26,7 @@ class ArvoreBlocos{
     }
 
     percorrerArvore(raiz){
-        resultado = 1
+        const resultado = 1
         raiz.filhos.forEach(bloco => {
             //manipular bloco atual tratando em serie
             //atualizando a variavel resultado
@@ -42,3 +44,5 @@ class ArvoreBlocos{
         this.filhos.splice(indice, 1, arv)
     }
 }
+
+export default ArvoreBlocos;
