@@ -82,10 +82,13 @@ export default function Album() {
   const diagrama = new Diagrama();
   const [blocoAnterior, setBlocoAnterior] = useState(null);
 
+  useEffect(() => {
+    console.log(diagrama)
+  }, [diagrama])
+
   const criarBloco = (mttr, mttf, tipo) => {
     const bloco = new Bloco(1, mttr, mttf);
-    console.log("TIPOO", tipo)
-    console.log("ANTERIOOOR", blocoAnterior)
+    //console.log("ANTERIOOOR", blocoAnterior)
 
     if (blocoAnterior == null) {
       diagrama.iniciar(bloco);
@@ -98,12 +101,10 @@ export default function Album() {
       }
       setBlocoAnterior(bloco);
     }
-    diagrama.inicio.filhos.forEach(element => {
+   /*  diagrama.inicio.filhos.forEach(element => {
       console.log(element)
-    });
-    console.log(diagrama)
-
-    console.log("AAAAAAAAAAAAA")
+    }); */
+    /* console.log(diagrama) */
   }
 
   let fileReader;
@@ -152,7 +153,6 @@ export default function Album() {
     var parser = new DOMParser();
     var xmlDoc = parser.parseFromString(content, "text/xml");
     const texto = xmlDoc.documentElement.textContent;
-    console.log(texto)
     //const jsonObj = JSON.parse(texto);
     //console.log(jsonObj)
 
@@ -186,13 +186,13 @@ export default function Album() {
     }
   }, [selectedFile]);
 
-  useEffect(() => {
+ /*  useEffect(() => {
     if (selectedDataFile) {
       fileReaderData = new FileReader();
       fileReaderData.onloadend = handleFileDataRead;
       fileReaderData.readAsText(selectedDataFile)
     }
-  }, [selectedDataFile])
+  }, [selectedDataFile]) */
 
   const changeHandler = (event) => {
     setSelectedFile(event.target.files[0]);
