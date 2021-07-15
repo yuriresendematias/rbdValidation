@@ -1,8 +1,8 @@
 class Bloco{
 
-    constructor(avaliabilidade, mttf, mttr){
+    constructor(mttf, mttr){
         this.id = 0
-        this.avaliabilidade = avaliabilidade;
+        this.confiabilidade = mttf / (mttf + mttr);
         this.mttf   = mttf;
         this.mttr   = mttr;
         this.pai    = null
@@ -39,12 +39,7 @@ class Bloco{
         }
     }
 
-    getAvaliabilidade(){
-        //salva o valor atual da avaliabilidade em uma variavel chamada resultado
-        //se tiver filho, pega a avaliabilidade do bloco "+" avaliabilidade do filho
-        //salva o resultado
-        //"soma" o resultado com o resultado da avaliabilidade do próximo
-        //retorna resultado
+    getConfiabilidade(){
+        return this.confiabilidade
     }
-
 }

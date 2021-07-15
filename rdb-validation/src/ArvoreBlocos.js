@@ -15,6 +15,10 @@ class ArvoreBlocos{
         this.id = id
     }
 
+    getTipo(){
+        return this.tipo
+    }
+
     adicionarBloco(bloco){
         this.filhos.push(bloco)
     }

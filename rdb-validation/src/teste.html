@@ -10,14 +10,14 @@
 
     <title>Teste</title>
     <script>
-        a = new Bloco(1, 2, 3)
-        b = new Bloco(2,2,2)
-        c = new Bloco(3,3,3)
-        d = new Bloco(3,3,4)
-        e = new Bloco(3,3,5)
-        f = new Bloco(3,3,6)
-        g = new Bloco(3,3,7)
-        h = new Bloco(3,3,8)
+        a = new Bloco(500, 10)
+        b = new Bloco(60, 10)
+        c = new Bloco(100,5)
+        d = new Bloco(800,4)
+        e = new Bloco(50,5)
+        f = new Bloco(120,20)
+        g = new Bloco(600,30)
+        h = new Bloco(50,2)
 
         diagrama = new Diagrama()
         diagrama.iniciar(a)
@@ -31,13 +31,11 @@
         diagrama.adicionarBlocoParalelo(f,e)            //passando o bloco como segundo parametro
                                                         //f está em paralelo com e, e a "malha" que envolve os dois
                                                         //está em paralelo com c e d
-        diagrama.adicionarBlocoSerie(h,b)
         diagrama.adicionarBlocoSerie(g,d)
+        diagrama.adicionarBlocoSerie(h,b)
 
-        
-        diagrama.inicio.filhos.forEach(element => {
-            console.log(element)
-        });
+        console.log(diagrama)
+        console.log(diagrama.calcularConfiabilidade())
         
         
 
