@@ -123,6 +123,7 @@ export default function Album() {
     //const jsonObj = JSON.parse(texto);
     //console.log(jsonObj)
 
+
     const blocks = xmlDoc.getElementsByTagName("org.modcs.tools.rbd.blocks.BlockExponential")[0]
     const nameBlock1 = blocks.getElementsByTagName("name")[0].childNodes[0].nodeValue
 
