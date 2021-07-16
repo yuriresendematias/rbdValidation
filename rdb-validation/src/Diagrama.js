@@ -28,13 +28,14 @@ class Diagrama{
     //cria uma arvore de blocos paralelos
     //que tem bloco e pai como filhos
     //e substitui pai na arvore de blocos original
-    adicionarBlocoParalelo(bloco, pai){   
-        if(pai instanceof Bloco){
-            this.ramificar(bloco, pai, "paralelo")
+    adicionarBlocoParalelo(bloco, blocoAnterior){   
+        if(blocoAnterior.getPai().tipo == "serie"){
+            this.ramificar(bloco, blocoAnterior, "paralelo")
         }
         
-        else{ //então pai é uma arvore
-            bloco.setId(this.ultimoId)
+        else{ //então bloco anterior está em uma malha em paralelo
+            let pai = blocoAnterior.getPai()
+            bloco.setId(this.ultimoId + 1)
             this.ultimoId += 1
             pai.adicionarBloco(bloco)
             bloco.setPai(pai)

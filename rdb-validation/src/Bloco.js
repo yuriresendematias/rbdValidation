@@ -6,7 +6,6 @@ class Bloco{
         this.mttf   = mttf;
         this.mttr   = mttr;
         this.pai    = null
-        this.filhos  = []
     }
 
     getId(){

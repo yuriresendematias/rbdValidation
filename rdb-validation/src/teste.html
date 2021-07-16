@@ -10,7 +10,7 @@
 
     <title>Teste</title>
     <script>
-        a = new Bloco(500, 10)
+        a = new Bloco(500, 4)
         b = new Bloco(60, 10)
         c = new Bloco(100,5)
         d = new Bloco(800,4)
@@ -22,17 +22,17 @@
         diagrama = new Diagrama()
         diagrama.iniciar(a)
         
-        diagrama.adicionarBlocoSerie(b,a)
-        diagrama.adicionarBlocoSerie(c,b)
-        diagrama.adicionarBlocoParalelo(d,c)
-        diagrama.adicionarBlocoParalelo(e,d.getPai())   //passando a arvore como segundo parametro, 
+        //diagrama.adicionarBlocoSerie(b,a)
+        //diagrama.adicionarBlocoSerie(c,b)
+        //diagrama.adicionarBlocoParalelo(d,c)
+        //diagrama.adicionarBlocoParalelo(e,d)   //passando a arvore como segundo parametro, 
                                                         //e está em paralelo com d e c
         
-        diagrama.adicionarBlocoParalelo(f,e)            //passando o bloco como segundo parametro
+        //diagrama.adicionarBlocoParalelo(f,e)            //passando o bloco como segundo parametro
                                                         //f está em paralelo com e, e a "malha" que envolve os dois
                                                         //está em paralelo com c e d
-        diagrama.adicionarBlocoSerie(g,d)
-        diagrama.adicionarBlocoSerie(h,b)
+        //diagrama.adicionarBlocoSerie(g,d)
+        //diagrama.adicionarBlocoSerie(h,b)
 
         console.log(diagrama)
         console.log(diagrama.calcularConfiabilidade())
