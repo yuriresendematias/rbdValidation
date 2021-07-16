@@ -2,11 +2,12 @@ import Bloco from './Bloco';
 
 class ArvoreBlocos {
 
-    constructor(tipo) {
+    constructor(tipo, label) {
         this.id = 0
         this.tipo = tipo                      //serie ou paralelo
         this.raiz = new Bloco(1, 1, 1)        //raiz neutra para a realização dos calculos
-        this.filhos = []                        //blocos em serie
+        this.filhos = []  
+        this.label = label ? label : this.tipo + " " + this.id                     //blocos em serie
     }
 
     getFilhos() {
@@ -15,6 +16,7 @@ class ArvoreBlocos {
 
     setId(id) {
         this.id = id
+        this.label = this.tipo + " " + this.id
     }
 
     getTipo() {

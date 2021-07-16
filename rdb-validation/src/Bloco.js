@@ -54,14 +54,12 @@ export default class Bloco{
             mttr +=  Math.random() * (this.mttr+rangeMeanValue - (this.mttr-rangeMeanValue < 0 ? 0 : this.mttr-rangeMeanValue)) + this.mttr-rangeMeanValue
             repetitions--
         }
-        console.log(mttf)
-        console.log(mttr)
+        
         mttf = mttf/repetitionsValue;
         mttr = mttr/repetitionsValue;
-        console.log(mttf)
-        console.log(mttr)
+        
         let confiabilidade = mttf / (mttf + mttr);
-        console.log(confiabilidade)
+        
         return confiabilidade
     }
 

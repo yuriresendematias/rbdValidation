@@ -23,23 +23,12 @@ const useStyles = makeStyles({
   },
 });
 export const atualizarDiagrama = (diagramaEnviado) => {
-  console.log(diagramaEnviado)
   diagrama= diagramaEnviado
 }
 
 export default function RecursiveTreeView(...props) {
 
   const classes = useStyles();  
-  //console.log(props.diagrama.inicio.filhos[0])
-  /* let lista = props.diagrama
-  useEffect(() => {
-    console.log("8933")
-    console.log(lista)
-  }, [lista])
-  if(props.diagrama){
-    console.log(props.diagrama.inicio.filhos[0])
-  }
- */
   const renderTreeBloco = (nodes) => (
     <TreeItem key={nodes.id} nodeId={nodes.id} label={nodes.label}>
       {Array.isArray(nodes.filhos) ? nodes.filhos.map((node) => renderTree(node)) : null}
@@ -48,7 +37,7 @@ export default function RecursiveTreeView(...props) {
 
 
   const renderTree = (nodes) => (
-    <TreeItem key={nodes.id} nodeId={nodes.id} label={nodes instanceof Bloco ? nodes.label : nodes.tipo}>
+    <TreeItem key={nodes.id} nodeId={nodes.id} label={nodes.label}>
       {Array.isArray(nodes.filhos) ? nodes.filhos.map((node) => node instanceof Bloco ? item(node) : renderTree(node) ) : null}
     </TreeItem>
   );

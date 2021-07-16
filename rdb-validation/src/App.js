@@ -10,11 +10,12 @@ import Paper from "@material-ui/core/Paper";
 import CssBaseline from "@material-ui/core/CssBaseline";
 import Toolbar from "@material-ui/core/Toolbar";
 import Typography from "@material-ui/core/Typography";
+import Box from '@material-ui/core/Box';
 import { makeStyles } from "@material-ui/core/styles";
 import Container from "@material-ui/core/Container";
 import Link from "@material-ui/core/Link";
 import Dialog from './Dialog';
-import RecursiveTreeView, {atualizarDiagrama} from "./RecursiveTreeView";
+import RecursiveTreeView, { atualizarDiagrama } from "./RecursiveTreeView";
 import { Grid, TextField } from "@material-ui/core";
 import Diagrama from './Diagrama';
 import Bloco from './Bloco';
@@ -38,8 +39,11 @@ const useStyles = makeStyles((theme) => ({
     marginRight: theme.spacing(2),
   },
   heroContent: {
+    display: 'flex',
+    justifyContent: 'center',
     backgroundColor: theme.palette.background.paper,
     padding: theme.spacing(2, 0, 6),
+    width: "100%",
   },
   heroButtons: {
     flexDirection: 'column',
@@ -69,24 +73,20 @@ const useStyles = makeStyles((theme) => ({
 
 const diagrama = new Diagrama();
 
+
 export default function Album() {
   const classes = useStyles();
-  const [selectedFile, setSelectedFile] = useState();
-  const [selectedDataFile, setSelectedDataFile] = useState();
-  const [isFilePicked, setIsFilePicked] = useState(false);
-  const [dataLoaded, setDataLoaded] = useState(null);
-  const [dataCompleteLoaded, setDataCompleteLoaded] = useState(false);
-  const [failureMeanValue, setFailuereMeanValue] = useState(null);
   const [repetitionsValue, setRepetitionsnValue] = useState(null);
   const [rangeMeanValue, setRangeMeanValue] = useState(null);
-  const [uptime, setUptime] = useState(null);
-  const [downtime, setDowntime] = useState(null);
   const [diagramaState, setDiagramaState] = useState(null);
+  const [avaliabilitys, setAvaliabilitys] = useState([]);
+  const [refreshState, setRefreshState] = useState(new Date);
+  const [execution, setExecution] = useState(1);
 
   const criarBloco = (mttr, mttf, tipo, nome, blocoAnterior) => {
     const bloco = new Bloco(mttf, mttr, nome);
 
-    if (blocoAnterior == null) {
+    if (blocoAnterior == null && diagrama.listaBlocos.length == 0) {
       diagrama.iniciar(bloco);
     } else {
       if (tipo == 'series') {
@@ -99,108 +99,75 @@ export default function Album() {
         }
       }
     }
+    console.log(diagrama);
     setDiagramaState(diagrama);
     atualizarDiagrama(diagrama);
   }
 
-  let fileReader;
-  let fileReaderData;
+  const handleSubmission = () => {
+    
+    if (!repetitionsValue && !rangeMeanValue) {
+      let availability = diagrama.calcularConfiabilidade(1, 0);
+      if (availability) {
+        const result = {
+          executionNumber: "Execution " + execution,
+          repetitionsValue: "Number of repetitions = 1",
+          rangeMeanValue: "Range of mean = 0",
+          availability: "Avaliability = " + availability,
+        }
+        let list = avaliabilitys;
+        list.unshift(result);
+        setExecution(execution + 1);
+        setAvaliabilitys(list);
+        setRefreshState(new Date);
+      }
+    } else if (!repetitionsValue) {
+      let availability = diagrama.calcularConfiabilidade(1,rangeMeanValue);
+      if (availability) {
+        const result = {
+          executionNumber: "Execution " + execution,
+          repetitionsValue: "Number of repetitions = 1",
+          rangeMeanValue: "Range of mean = "+rangeMeanValue,
+          availability: "Avaliability = " + availability,
+        }
+        let list = avaliabilitys;
+        list.unshift(result);
+        setExecution(execution + 1);
+        setAvaliabilitys(list);
+        setRefreshState(new Date);
+      }
 
-  const handleFileRead = (e) => {
-    const content = fileReader.result;
-
-    var parser = new DOMParser();
-    var xmlDoc = parser.parseFromString(content, "text/xml");
-
-    const availabilityFloat = parseFloat(
-      xmlDoc.getElementsByTagName("availability")[0].childNodes[0].nodeValue
-    );
-
-    setUptime(availabilityFloat * 8760);
-    setDowntime((availabilityFloat * 8760 - 8760) * -1);
-    const resultado = {
-      availability:
-        xmlDoc.getElementsByTagName("availability")[0].childNodes[0].nodeValue,
-      mttr: xmlDoc.getElementsByTagName("mttr")[0].childNodes[0].nodeValue,
-      mttf: xmlDoc.getElementsByTagName("mttf")[0].childNodes[0].nodeValue,
-      totaltime:
-        xmlDoc.getElementsByTagName("totaltime")[0].childNodes[0].nodeValue,
-      downtimeUnit:
-        xmlDoc.getElementsByTagName("downtimeUnit")[0].childNodes[0].nodeValue,
-      uptimeUnit:
-        xmlDoc.getElementsByTagName("uptimeUnit")[0].childNodes[0].nodeValue,
-      samplingPoints:
-        xmlDoc.getElementsByTagName("samplingPoints")[0].childNodes[0]
-          .nodeValue,
-      showAvailability:
-        xmlDoc.getElementsByTagName("showAvailability")[0].childNodes[0]
-          .nodeValue,
-      showDowntime:
-        xmlDoc.getElementsByTagName("showDowntime")[0].childNodes[0].nodeValue,
-      showUptime:
-        xmlDoc.getElementsByTagName("showUptime")[0].childNodes[0].nodeValue,
-    };
-    setDataLoaded(resultado);
-  };
-
-  const handleFileDataRead = (e) => {
-    const content = fileReaderData.result;
-
-    var parser = new DOMParser();
-    var xmlDoc = parser.parseFromString(content, "text/xml");
-    const texto = xmlDoc.documentElement.textContent;
-    //const jsonObj = JSON.parse(texto);
-    //console.log(jsonObj)
-
-
-    const blocks = xmlDoc.getElementsByTagName("org.modcs.tools.rbd.blocks.BlockExponential")[0]
-    const nameBlock1 = blocks.getElementsByTagName("name")[0].childNodes[0].nodeValue
-
-    const blockIni = blocks.getElementsByTagName("fatherBlock")[0]
-    console.log(typeof (blockIni.getElementsByTagName("blocks")[0]))
-
-    const block1 = {
-      name: blocks.getElementsByTagName("name")[0].childNodes[0].nodeValue,
-      failureRate: blocks.getElementsByTagName("failureRate")[0].childNodes[0].nodeValue,
-      repairRate: blocks.getElementsByTagName("repairRate")[0].childNodes[0].nodeValue,
+    } else if (!rangeMeanValue) {
+      let availability = diagrama.calcularConfiabilidade(repetitionsValue, 0);
+      if (availability) {
+        const result = {
+          executionNumber: "Execution " + execution,
+          repetitionsValue: "Number of repetitions = "+repetitionsValue,
+          rangeMeanValue: "Range of mean = 0",
+          availability: "Avaliability = " + availability,
+        }
+        let list = avaliabilitys;
+        list.unshift(result);
+        setExecution(execution + 1);
+        setAvaliabilitys(list);
+        setRefreshState(new Date);
+      }
+    } else {
+      let availability = diagrama.calcularConfiabilidade(repetitionsValue, rangeMeanValue);
+      if (availability) {
+        const result = {
+          executionNumber: "Execution " + execution,
+          repetitionsValue: "Number of repetitions = "+repetitionsValue,
+          rangeMeanValue: "Range of mean = "+rangeMeanValue,
+          availability: "Avaliability = " + availability,
+        }
+        let list = avaliabilitys;
+        list.unshift(result);
+        setExecution(execution + 1);
+        setAvaliabilitys(list);
+        setRefreshState(new Date);
+      }
     }
-
-    console.log(block1)   
-
-    console.log(xmlDoc)
-  }
-
-  useEffect(() => {
-    if (selectedFile) {
-      fileReader = new FileReader();
-      fileReader.onloadend = handleFileRead;
-      fileReader.readAsText(selectedFile);
-    }
-  }, [selectedFile]);
-
-  /*  useEffect(() => {
-     if (selectedDataFile) {
-       fileReaderData = new FileReader();
-       fileReaderData.onloadend = handleFileDataRead;
-       fileReaderData.readAsText(selectedDataFile)
-     }
-   }, [selectedDataFile]) */
-
-  const changeHandler = (event) => {
-    setSelectedFile(event.target.files[0]);
-  };
-
-  const changeHandlerData = (event) => {
-    setSelectedDataFile(event.target.files[0]);
-  };
-
-  const handleSubmission = () => {    
-    alert("Avaliability = " + diagrama.calcularConfiabilidade(repetitionsValue, rangeMeanValue));
-  };
-
-  const resetFile = () => {
-    setSelectedFile(null);
-    setDataLoaded(null);
   };
 
   return (
@@ -214,16 +181,16 @@ export default function Album() {
           </Typography>
         </Toolbar>
       </AppBar>
-      <main>
-        {/* Hero unit */}
-        <div className={classes.heroContent}>
+      <Grid style={{ display: 'flex', height: 780, justifyContent: 'center' }} >
 
-          <div style={{ display: 'flex', justifyContent: 'center' }}>
+        <Grid className={classes.heroContent}>
+
+          <div style={{ display: 'flex', justifyContent: 'space-between',  width: 720 }}>
             <RecursiveTreeView
               diagrama={diagramaState}
             />
             <div className={classes.heroButtons}>
-              <Grid container sm={8} xs={12} style={{ alignSelf: "center" }}>
+              <Grid sm={12} xs={12} style={{ alignSelf: "center" }}>
                 <TextField
                   fullWidth
                   helperText="Enter the number of repetitions"
@@ -235,7 +202,7 @@ export default function Album() {
                   variant="outlined"
                 />
               </Grid>
-              <Grid container sm={8} xs={12} style={{ alignSelf: "center" }}>
+              <Grid sm={12} xs={12} style={{ alignSelf: "center" }}>
                 <TextField
                   fullWidth
                   helperText="Enter the range of mean"
@@ -264,14 +231,39 @@ export default function Album() {
                   />
                 </Grid>
               </Grid>
+              {
+                avaliabilitys.length > 0 &&
+                <Grid style={{ marginTop: 15, overflowY: 'scroll', height: 600 }}>
+                  {avaliabilitys.map((elem) => {
+                    return (
+                      <Card style={{ marginTop: 10, padding: 5, marginRight: 15, marginLeft: 5 }}>
+                        <Box  color="inherit" fontWeight="fontWeightBold" >
+                          {elem.executionNumber}
+                        </Box >
+                        <Typography color="inherit">
+                          {elem.repetitionsValue}
+                        </Typography>
+                        <Typography color="inherit">
+                          {elem.rangeMeanValue}
+                        </Typography>
+                        <Typography color="inherit">
+                          {elem.availability}
+                        </Typography>
+                      </Card>
+                    )
+                  })}
+                </Grid>
+              }
+
             </div>
 
 
           </div>
-          {/* ) : !dataLoaded ? (
-             } */}
-        </div>
-      </main>
+
+
+        </Grid>
+
+      </Grid>
 
       {/* Footer */}
       <footer className={classes.footer}>

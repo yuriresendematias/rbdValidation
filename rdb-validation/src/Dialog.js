@@ -7,11 +7,12 @@ import DialogContent from '@material-ui/core/DialogContent';
 import DialogContentText from '@material-ui/core/DialogContentText';
 import DialogTitle from '@material-ui/core/DialogTitle';
 import Select from 'react-select';
+import { Grid } from "@material-ui/core";
 
 const options = [
     { value: 'series', label: 'Series' },
-    { value: 'parallel', label: 'Parallel' },    
-  ]
+    { value: 'parallel', label: 'Parallel' },
+]
 
 export default function FormDialog(props) {
     const [open, setOpen] = useState(false);
@@ -28,9 +29,28 @@ export default function FormDialog(props) {
     };
 
     const handleClose = () => {
-        props.criarBloco(mttr, mttf, tipo, name, blocoAnterior);
         setOpen(false);
-    }; 
+    };
+
+    const adicionar = () => {
+        if (mttr && mttf && tipo && name) {
+            if (props.diagrama.listaBlocos == 0) {
+                props.criarBloco(mttr, mttf, tipo, name, blocoAnterior);
+                setOpen(false);
+            } else {
+                if (blocoAnterior) {
+                    props.criarBloco(mttr, mttf, tipo, name, blocoAnterior);
+                    setOpen(false);
+                } else {
+                    alert("Insira todas as informações!")
+                }
+            }
+        }
+        else {
+            alert("Insira todas as informações!")
+        }
+
+    }
 
     return (
         <div>
@@ -43,9 +63,11 @@ export default function FormDialog(props) {
                     <DialogContentText>
                         Enter the mean value of the failure distribution and the mean value of the repair distribution
                     </DialogContentText>
-                    <Select autoFocus options={options} onChange={(event) => setTipo(event.value)}/>
-                    <Select options={props.diagrama.listaBlocos} onChange={(event) => setBlocoAnterior(event)}/>
-                    <TextField                        
+                    <Select autoFocus options={options} onChange={(event) => setTipo(event.value)} />
+                    <Grid style={{ marginTop: 10 }}>
+                        <Select options={props.diagrama.listaBlocos} onChange={(event) => setBlocoAnterior(event)} />
+                    </Grid>
+                    <TextField
                         margin="dense"
                         id="name"
                         label="Name"
@@ -53,7 +75,7 @@ export default function FormDialog(props) {
                         fullWidth
                         onChange={(event) => setName(event.target.value)}
                     />
-                    <TextField                        
+                    <TextField
                         margin="dense"
                         id="failureMean"
                         label="Failure Distribution Mean Value"
@@ -62,7 +84,7 @@ export default function FormDialog(props) {
                         step="0.1"
                         onChange={(event) => setMttf(event.target.value)}
                     />
-                    <TextField                        
+                    <TextField
                         margin="dense"
                         id="repairMean"
                         label="Repair Distribution Mean Value"
@@ -76,7 +98,7 @@ export default function FormDialog(props) {
                     <Button onClick={handleClose} color="primary">
                         Cancel
                     </Button>
-                    <Button onClick={handleClose} color="primary">
+                    <Button onClick={adicionar} color="primary">
                         Insert
                     </Button>
                 </DialogActions>
