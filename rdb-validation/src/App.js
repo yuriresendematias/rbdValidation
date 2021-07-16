@@ -10,18 +10,23 @@ import Paper from "@material-ui/core/Paper";
 import CssBaseline from "@material-ui/core/CssBaseline";
 import Toolbar from "@material-ui/core/Toolbar";
 import Typography from "@material-ui/core/Typography";
+import Box from '@material-ui/core/Box';
 import { makeStyles } from "@material-ui/core/styles";
 import Container from "@material-ui/core/Container";
 import Link from "@material-ui/core/Link";
-
+import Dialog from './Dialog';
+import RecursiveTreeView, { atualizarDiagrama } from "./RecursiveTreeView";
 import { Grid, TextField } from "@material-ui/core";
+import Diagrama from './Diagrama';
+import Bloco from './Bloco';
+
 
 function Copyright() {
   return (
     <Typography variant="body2" color="textSecondary" align="center">
       {"Copyright © "}
       <Link color="inherit" href="https://material-ui.com/">
-        UNAME
+        UFAPE
       </Link>{" "}
       {new Date().getFullYear()}
       {"."}
@@ -34,11 +39,16 @@ const useStyles = makeStyles((theme) => ({
     marginRight: theme.spacing(2),
   },
   heroContent: {
+    display: 'flex',
+    justifyContent: 'center',
     backgroundColor: theme.palette.background.paper,
-    padding: theme.spacing(8, 0, 6),
+    padding: theme.spacing(2, 0, 6),
+    width: "100%",
   },
   heroButtons: {
-    marginTop: theme.spacing(4),
+    flexDirection: 'column',
+    justifyContent: 'center',
+    marginLeft: theme.spacing(8),
   },
   cardGrid: {
     paddingTop: theme.spacing(8),
@@ -61,121 +71,103 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
+const diagrama = new Diagrama();
+
+
 export default function Album() {
   const classes = useStyles();
-  const [selectedFile, setSelectedFile] = useState();
-  const [selectedDataFile, setSelectedDataFile] = useState();
-  const [isFilePicked, setIsFilePicked] = useState(false);
-  const [dataLoaded, setDataLoaded] = useState(null);
-  const [dataCompleteLoaded, setDataCompleteLoaded] = useState(false);
-  const [failureMeanValue, setFailuereMeanValue] = useState(null);
-  const [repairMeanValue, setRepairMeanValueMeanValue] = useState(null);
-  const [uptime, setUptime] = useState(null);
-  const [downtime, setDowntime] = useState(null);
+  const [repetitionsValue, setRepetitionsnValue] = useState(null);
+  const [rangeMeanValue, setRangeMeanValue] = useState(null);
+  const [diagramaState, setDiagramaState] = useState(null);
+  const [avaliabilitys, setAvaliabilitys] = useState([]);
+  const [refreshState, setRefreshState] = useState(new Date);
+  const [execution, setExecution] = useState(1);
 
-  let fileReader;
-  let fileReaderData;
+  const criarBloco = (mttr, mttf, tipo, nome, blocoAnterior) => {
+    const bloco = new Bloco(mttf, mttr, nome);
 
-  const handleFileRead = (e) => {
-    const content = fileReader.result;
-
-    var parser = new DOMParser();
-    var xmlDoc = parser.parseFromString(content, "text/xml");
-
-    const availabilityFloat = parseFloat(
-      xmlDoc.getElementsByTagName("availability")[0].childNodes[0].nodeValue
-    );
-
-    setUptime(availabilityFloat * 8760);
-    setDowntime((availabilityFloat * 8760 - 8760) * -1);
-    const resultado = {
-      availability:
-        xmlDoc.getElementsByTagName("availability")[0].childNodes[0].nodeValue,
-      mttr: xmlDoc.getElementsByTagName("mttr")[0].childNodes[0].nodeValue,
-      mttf: xmlDoc.getElementsByTagName("mttf")[0].childNodes[0].nodeValue,
-      totaltime:
-        xmlDoc.getElementsByTagName("totaltime")[0].childNodes[0].nodeValue,
-      downtimeUnit:
-        xmlDoc.getElementsByTagName("downtimeUnit")[0].childNodes[0].nodeValue,
-      uptimeUnit:
-        xmlDoc.getElementsByTagName("uptimeUnit")[0].childNodes[0].nodeValue,
-      samplingPoints:
-        xmlDoc.getElementsByTagName("samplingPoints")[0].childNodes[0]
-          .nodeValue,
-      showAvailability:
-        xmlDoc.getElementsByTagName("showAvailability")[0].childNodes[0]
-          .nodeValue,
-      showDowntime:
-        xmlDoc.getElementsByTagName("showDowntime")[0].childNodes[0].nodeValue,
-      showUptime:
-        xmlDoc.getElementsByTagName("showUptime")[0].childNodes[0].nodeValue,
-    };
-    setDataLoaded(resultado);
-  };  
-
-  const handleFileDataRead = (e) => {
-    const content = fileReaderData.result;
-
-    var parser = new DOMParser();
-    var xmlDoc = parser.parseFromString(content, "text/xml");
-    const texto = xmlDoc.documentElement.textContent;
-    console.log(texto)
-    //const jsonObj = JSON.parse(texto);
-    //console.log(jsonObj)
-
-
-    const blocks = xmlDoc.getElementsByTagName("org.modcs.tools.rbd.blocks.BlockExponential")[0]
-    const nameBlock1 = blocks.getElementsByTagName("name")[0].childNodes[0].nodeValue
-
-    const blockIni = blocks.getElementsByTagName("fatherBlock")[0]
-    console.log(typeof(blockIni.getElementsByTagName("blocks")[0]))    
-
-    const block1 = {
-      name: blocks.getElementsByTagName("name")[0].childNodes[0].nodeValue,
-      failureRate: blocks.getElementsByTagName("failureRate")[0].childNodes[0].nodeValue,
-      repairRate: blocks.getElementsByTagName("repairRate")[0].childNodes[0].nodeValue,
+    if (blocoAnterior == null && diagrama.listaBlocos.length == 0) {
+      diagrama.iniciar(bloco);
+    } else {
+      if (tipo == 'series') {
+        diagrama.adicionarBlocoSerie(bloco, blocoAnterior);
+      } else {
+        if (blocoAnterior.getPai().tipo == 'paralelo') {
+          diagrama.adicionarBlocoParalelo(bloco, blocoAnterior.getPai());
+        } else {
+          diagrama.adicionarBlocoParalelo(bloco, blocoAnterior);
+        }
+      }
     }
-
-    console.log(block1)
-
-    const loadBlock = (block) => {
-
-    }
-
-    console.log(xmlDoc)
+    console.log(diagrama);
+    setDiagramaState(diagrama);
+    atualizarDiagrama(diagrama);
   }
 
-  useEffect(() => {
-    if (selectedFile) {
-      fileReader = new FileReader();
-      fileReader.onloadend = handleFileRead;
-      fileReader.readAsText(selectedFile);
-    }
-  }, [selectedFile]);
-
-  useEffect(() => {
-    if(selectedDataFile){
-      fileReaderData = new FileReader();
-      fileReaderData.onloadend = handleFileDataRead;
-      fileReaderData.readAsText(selectedDataFile)
-    }
-  }, [selectedDataFile])
-
-  const changeHandler = (event) => {
-    setSelectedFile(event.target.files[0]);
-  };
-
-  const changeHandlerData = (event) => {
-    setSelectedDataFile(event.target.files[0]);
-  };
-
   const handleSubmission = () => {
-    alert(failureMeanValue + " " + repairMeanValue);
-  };
+    
+    if (!repetitionsValue && !rangeMeanValue) {
+      let availability = diagrama.calcularConfiabilidade(1, 0);
+      if (availability) {
+        const result = {
+          executionNumber: "Execution " + execution,
+          repetitionsValue: "Number of repetitions = 1",
+          rangeMeanValue: "Range of mean = 0",
+          availability: "Avaliability = " + availability,
+        }
+        let list = avaliabilitys;
+        list.unshift(result);
+        setExecution(execution + 1);
+        setAvaliabilitys(list);
+        setRefreshState(new Date);
+      }
+    } else if (!repetitionsValue) {
+      let availability = diagrama.calcularConfiabilidade(1,rangeMeanValue);
+      if (availability) {
+        const result = {
+          executionNumber: "Execution " + execution,
+          repetitionsValue: "Number of repetitions = 1",
+          rangeMeanValue: "Range of mean = "+rangeMeanValue,
+          availability: "Avaliability = " + availability,
+        }
+        let list = avaliabilitys;
+        list.unshift(result);
+        setExecution(execution + 1);
+        setAvaliabilitys(list);
+        setRefreshState(new Date);
+      }
 
-  const resetFile = () => {
-    setSelectedFile(null);
-    setDataLoaded(null);
+    } else if (!rangeMeanValue) {
+      let availability = diagrama.calcularConfiabilidade(repetitionsValue, 0);
+      if (availability) {
+        const result = {
+          executionNumber: "Execution " + execution,
+          repetitionsValue: "Number of repetitions = "+repetitionsValue,
+          rangeMeanValue: "Range of mean = 0",
+          availability: "Avaliability = " + availability,
+        }
+        let list = avaliabilitys;
+        list.unshift(result);
+        setExecution(execution + 1);
+        setAvaliabilitys(list);
+        setRefreshState(new Date);
+      }
+    } else {
+      let availability = diagrama.calcularConfiabilidade(repetitionsValue, rangeMeanValue);
+      if (availability) {
+        const result = {
+          executionNumber: "Execution " + execution,
+          repetitionsValue: "Number of repetitions = "+repetitionsValue,
+          rangeMeanValue: "Range of mean = "+rangeMeanValue,
+          availability: "Avaliability = " + availability,
+        }
+        let list = avaliabilitys;
+        list.unshift(result);
+        setExecution(execution + 1);
+        setAvaliabilitys(list);
+        setRefreshState(new Date);
+      }
+    }
   };
 
   return (
@@ -189,199 +181,89 @@ export default function Album() {
           </Typography>
         </Toolbar>
       </AppBar>
-      <main>
-        {/* Hero unit */}
-        <div className={classes.heroContent}>
-          <Typography
-            component="h1"
-            variant="h3"
-            align="center"
-            color="textPrimary"
-            gutterBottom
-          >
-            RBD model validation
-          </Typography>
-          {dataLoaded && dataCompleteLoaded ? (
-            <Paper
-              style={{
-                display: "flex",
-                alignItems: "center",
-                flexDirection: "column",
-                padding: 10,
-              }}
-            >
-              <div
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  flexDirection: "row",
-                  padding: 10,
-                }}
-              >
-                <Grid
-                  item
-                  sm={4}
-                  xs={12}
-                  style={{
-                    alignItems: "flex-start",
-                    justifyContent: "flex-start",
-                  }}
-                >
-                  <Typography component="h1" variant="h6">
-                    {`Availability: ${dataLoaded.availability}`}
-                  </Typography>
-                  <Typography component="h1" variant="h6">
-                    {`Mean Time to Repair: ${dataLoaded.mttr}`}
-                  </Typography>
-                  <Typography component="h1" variant="h6">
-                    {`Mean Time To Failure: ${dataLoaded.mttf}`}
-                  </Typography>
-                  <Typography component="h1" variant="h6">
-                    {`downtimeUnit: ${dataLoaded.downtimeUnit}`}
-                  </Typography>
-                  <Typography component="h1" variant="h6">
-                    {`uptimeUnit: ${dataLoaded.uptimeUnit}`}
-                  </Typography>
-                  <Typography component="h1" variant="h6">
-                    {`samplingPoints: ${dataLoaded.samplingPoints}`}
-                  </Typography>
-                  <Typography component="h1" variant="h6">
-                    {`showDowntime: ${dataLoaded.showDowntime}`}
-                  </Typography>
-                  <Typography component="h1" variant="h6">
-                    {`showUptime: ${dataLoaded.showUptime}`}
-                  </Typography>
-                  <Typography component="h1" variant="h6">
-                    {`Uptime: ${uptime}`}
-                  </Typography>
-                  <Typography component="h1" variant="h6">
-                    {`Downtime: ${downtime}`}
-                  </Typography>
-                </Grid>
+      <Grid style={{ display: 'flex', height: 780, justifyContent: 'center' }} >
 
-                <Grid item sm={8} xs={12} style={{ alignSelf: "center" }}>
-                  <TextField
-                    fullWidth
-                    helperText="Enter the number of repetitions"
-                    id="meanValue"
-                    label="Number of repetitions"
-                    size="small"
-                    onChange={(e) => setFailuereMeanValue(e.target.value)}
-                    value={failureMeanValue}
-                    variant="outlined"
+        <Grid className={classes.heroContent}>
+
+          <div style={{ display: 'flex', justifyContent: 'space-between',  width: 720 }}>
+            <RecursiveTreeView
+              diagrama={diagramaState}
+            />
+            <div className={classes.heroButtons}>
+              <Grid sm={12} xs={12} style={{ alignSelf: "center" }}>
+                <TextField
+                  fullWidth
+                  helperText="Enter the number of repetitions"
+                  id="repetitionsValue"
+                  label="Number of repetitions"
+                  size="small"
+                  onChange={(e) => setRepetitionsnValue(e.target.value)}
+                  value={repetitionsValue}
+                  variant="outlined"
+                />
+              </Grid>
+              <Grid sm={12} xs={12} style={{ alignSelf: "center" }}>
+                <TextField
+                  fullWidth
+                  helperText="Enter the range of mean"
+                  id="rangeMeanValue"
+                  label="Range of mean"
+                  size="small"
+                  onChange={(e) => setRangeMeanValue(e.target.value)}
+                  value={rangeMeanValue}
+                  variant="outlined"
+                />
+              </Grid>
+              <Grid container spacing={1} justify="center">
+                <Grid item>
+                  <Button
+                    onClick={handleSubmission}
+                    variant="contained"
+                    color="primary"
+                  >
+                    Execute
+                  </Button>
+                </Grid>
+                <Grid item>
+                  <Dialog
+                    criarBloco={criarBloco}
+                    diagrama={diagrama}
                   />
-
-                  <div className={classes.heroButtons}>
-                    <Grid container spacing={2} justify="center">
-                      <Grid item>
-                        <Button
-                          onClick={handleSubmission}
-                          variant="contained"
-                          color="primary"
-                        >
-                          Execute
-                        </Button>
-                      </Grid>
-                      <Grid item>
-                        <Button
-                          onClick={resetFile}
-                          variant="outlined"
-                          color="primary"
-                        >
-                          Reload file
-                        </Button>
-                      </Grid>
-                    </Grid>
-                  </div>
                 </Grid>
-
-                <Grid item sm={4} xs={12}>
-                  <Typography component="h1" variant="h6" align="right">
-                    {`Availability: ${dataLoaded.availability}`}
-                  </Typography>
-                  <Typography component="h1" variant="h6" align="right">
-                    {`Mean Time to Repair: ${dataLoaded.mttr}`}
-                  </Typography>
-                  <Typography component="h1" variant="h6" align="right">
-                    {`Mean Time To Failure: ${dataLoaded.mttf}`}
-                  </Typography>
-                  <Typography component="h1" variant="h6" align="right">
-                    {`downtimeUnit: ${dataLoaded.downtimeUnit}`}
-                  </Typography>
-                  <Typography component="h1" variant="h6" align="right">
-                    {`uptimeUnit: ${dataLoaded.uptimeUnit}`}
-                  </Typography>
-                  <Typography component="h1" variant="h6" align="right">
-                    {`samplingPoints: ${dataLoaded.samplingPoints}`}
-                  </Typography>
-                  <Typography component="h1" variant="h6" align="right">
-                    {`showDowntime: ${dataLoaded.showDowntime}`}
-                  </Typography>
-                  <Typography component="h1" variant="h6" align="right">
-                    {`showUptime: ${dataLoaded.showUptime}`}
-                  </Typography>
-                  <Typography component="h1" variant="h6" align="right">
-                    {`Uptime: ${uptime}`}
-                  </Typography>
-                  <Typography component="h1" variant="h6" align="right">
-                    {`Downtime: ${downtime}`}
-                  </Typography>
+              </Grid>
+              {
+                avaliabilitys.length > 0 &&
+                <Grid style={{ marginTop: 15, overflowY: 'scroll', height: 600 }}>
+                  {avaliabilitys.map((elem) => {
+                    return (
+                      <Card style={{ marginTop: 10, padding: 5, marginRight: 15, marginLeft: 5 }}>
+                        <Box  color="inherit" fontWeight="fontWeightBold" >
+                          {elem.executionNumber}
+                        </Box >
+                        <Typography color="inherit">
+                          {elem.repetitionsValue}
+                        </Typography>
+                        <Typography color="inherit">
+                          {elem.rangeMeanValue}
+                        </Typography>
+                        <Typography color="inherit">
+                          {elem.availability}
+                        </Typography>
+                      </Card>
+                    )
+                  })}
                 </Grid>
-              </div>
-            </Paper>
-          ) : !dataLoaded ? (
-            <Container maxWidth="sm">
-              <Typography
-                variant="h5"
-                align="center"
-                color="textSecondary"
-                paragraph
-              >
-                Select the result of the RBD model xml file
-              </Typography>
-              <link
-                href="https://cdnjs.cloudflare.com/ajax/libs/ratchet/2.0.2/css/ratchet.css"
-                rel="stylesheet"
-              />
-              <label for="file" class="btn btn-primary btn-block btn-outlined">
-                Select the .xml
-              </label>
-              <input
-                type="file"
-                id="file"
-                name="file"
-                onChange={changeHandler}
-                style={{ display: "none" }}
-              />
-            </Container>
-          ) : (
-            <Container maxWidth="sm">
-              <Typography
-                variant="h5"
-                align="center"
-                color="textSecondary"
-                paragraph
-              >
-                Select the RBD model xml fileeeeeeeeeeeeee
-              </Typography>
-              <link
-                href="https://cdnjs.cloudflare.com/ajax/libs/ratchet/2.0.2/css/ratchet.css"
-                rel="stylesheet"
-              />
-              <label for="file" class="btn btn-primary btn-block btn-outlined">
-                Select the .xml
-              </label>
-              <input
-                type="file"
-                id="file"
-                name="file"
-                onChange={changeHandlerData}
-                style={{ display: "none" }}
-              />
-            </Container>
-          )}
-        </div>
-      </main>
+              }
+
+            </div>
+
+
+          </div>
+
+
+        </Grid>
+
+      </Grid>
 
       {/* Footer */}
       <footer className={classes.footer}>
