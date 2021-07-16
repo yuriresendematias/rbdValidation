@@ -1,48 +1,19 @@
-import React from 'react';
+import React, {useEffect, useState} from 'react';
 import { makeStyles } from '@material-ui/core/styles';
 import TreeView from '@material-ui/lab/TreeView';
 import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
 import ChevronRightIcon from '@material-ui/icons/ChevronRight';
 import TreeItem from '@material-ui/lab/TreeItem';
+import Bloco from './Bloco';
 
 const data = {
   id: 'root',
-  name: 'Series',
-  children: [
-    {
-      id: '1',
-      name: 'Node - 1',
-    },
-    {
-      id: '3',
-      name: 'Series',
-      children: [
-        {
-          id: '4',
-          name: 'Node - 4',
-        },
-        {
-          id: '5',
-          name: 'Node - 5',
-        },
-      ],
-    },
-    {
-      id: '6',
-      name: 'Parallel',
-      children: [
-        {
-          id: '7',
-          name: 'Node - 7',
-        },
-        {
-          id: '8',
-          name: 'Node - 8',
-        },
-      ],
-    },
+  name: 'Diagrama',
+  children: [   
   ],
 };
+
+let diagrama = null
 
 const useStyles = makeStyles({
   root: {
@@ -51,15 +22,40 @@ const useStyles = makeStyles({
     maxWidth: 400,
   },
 });
+export const atualizarDiagrama = (diagramaEnviado) => {
+  console.log(diagramaEnviado)
+  diagrama= diagramaEnviado
+}
 
-export default function RecursiveTreeView(props) {
-  const classes = useStyles();
+export default function RecursiveTreeView(...props) {
+
+  const classes = useStyles();  
+  //console.log(props.diagrama.inicio.filhos[0])
+  /* let lista = props.diagrama
+  useEffect(() => {
+    console.log("8933")
+    console.log(lista)
+  }, [lista])
+  if(props.diagrama){
+    console.log(props.diagrama.inicio.filhos[0])
+  }
+ */
+  const renderTreeBloco = (nodes) => (
+    <TreeItem key={nodes.id} nodeId={nodes.id} label={nodes.label}>
+      {Array.isArray(nodes.filhos) ? nodes.filhos.map((node) => renderTree(node)) : null}
+    </TreeItem>
+  )
+
 
   const renderTree = (nodes) => (
-    <TreeItem key={nodes.id} nodeId={nodes.id} label={nodes.name}>
-      {Array.isArray(nodes.children) ? nodes.children.map((node) => renderTree(node)) : null}
+    <TreeItem key={nodes.id} nodeId={nodes.id} label={nodes instanceof Bloco ? nodes.label : nodes.tipo}>
+      {Array.isArray(nodes.filhos) ? nodes.filhos.map((node) => node instanceof Bloco ? item(node) : renderTree(node) ) : null}
     </TreeItem>
   );
+
+  const item = (node) => (
+    <TreeItem key={node.id} nodeId={node.id} label={node.label}></TreeItem>
+  )
 
   return (
     <TreeView
@@ -68,7 +64,7 @@ export default function RecursiveTreeView(props) {
       defaultExpanded={['root']}
       defaultExpandIcon={<ChevronRightIcon />}
     >
-      {renderTree(data)}
+      {diagrama  && renderTree(diagrama.inicio)}
     </TreeView>
   );
 }

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import Button from '@material-ui/core/Button';
 import TextField from '@material-ui/core/TextField';
 import Dialog from '@material-ui/core/Dialog';
@@ -14,20 +14,23 @@ const options = [
   ]
 
 export default function FormDialog(props) {
-    const [open, setOpen] = React.useState(false);
-    const [mttr, setMttr] = React.useState(0);
-    const [mttf, setMttf] = React.useState(0);
-    const [tipo, setTipo] = React.useState('parallel');
+    const [open, setOpen] = useState(false);
+    const [name, setName] = useState('');
+    const [mttr, setMttr] = useState(0);
+    const [mttf, setMttf] = useState(0);
+    const [tipo, setTipo] = useState('parallel');
+    const [blocoAnterior, setBlocoAnterior] = useState(null);
+
+    /* const lista = ArvoreBlocos.percorrerArvore(props.diagrama.inicio) */
 
     const handleClickOpen = () => {
         setOpen(true);
     };
 
     const handleClose = () => {
-        console.log("TIPO ESOCLHIDO", tipo)
-        props.criarBloco(mttr, mttf, tipo);
+        props.criarBloco(mttr, mttf, tipo, name, blocoAnterior);
         setOpen(false);
-    };
+    }; 
 
     return (
         <div>
@@ -41,6 +44,15 @@ export default function FormDialog(props) {
                         Enter the mean value of the failure distribution and the mean value of the repair distribution
                     </DialogContentText>
                     <Select autoFocus options={options} onChange={(event) => setTipo(event.value)}/>
+                    <Select options={props.diagrama.listaBlocos} onChange={(event) => setBlocoAnterior(event)}/>
+                    <TextField                        
+                        margin="dense"
+                        id="name"
+                        label="Name"
+                        type="text"
+                        fullWidth
+                        onChange={(event) => setName(event.target.value)}
+                    />
                     <TextField                        
                         margin="dense"
                         id="failureMean"
@@ -48,7 +60,7 @@ export default function FormDialog(props) {
                         type="number"
                         fullWidth
                         step="0.1"
-                        onChange={(event) => setMttr(event.target.value)}
+                        onChange={(event) => setMttf(event.target.value)}
                     />
                     <TextField                        
                         margin="dense"
@@ -57,7 +69,7 @@ export default function FormDialog(props) {
                         type="number"
                         fullWidth
                         step="0.1"
-                        onChange={(event) => setMttf(event.target.value)}
+                        onChange={(event) => setMttr(event.target.value)}
                     />
                 </DialogContent>
                 <DialogActions>

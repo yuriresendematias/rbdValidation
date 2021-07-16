@@ -14,7 +14,7 @@ import { makeStyles } from "@material-ui/core/styles";
 import Container from "@material-ui/core/Container";
 import Link from "@material-ui/core/Link";
 import Dialog from './Dialog';
-import RecursiveTreeView from "./RecursiveTreeView";
+import RecursiveTreeView, {atualizarDiagrama} from "./RecursiveTreeView";
 import { Grid, TextField } from "@material-ui/core";
 import Diagrama from './Diagrama';
 import Bloco from './Bloco';
@@ -67,6 +67,8 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
+const diagrama = new Diagrama();
+
 export default function Album() {
   const classes = useStyles();
   const [selectedFile, setSelectedFile] = useState();
@@ -75,36 +77,30 @@ export default function Album() {
   const [dataLoaded, setDataLoaded] = useState(null);
   const [dataCompleteLoaded, setDataCompleteLoaded] = useState(false);
   const [failureMeanValue, setFailuereMeanValue] = useState(null);
-  const [repairMeanValue, setRepairMeanValueMeanValue] = useState(null);
+  const [repetitionsValue, setRepetitionsnValue] = useState(null);
+  const [rangeMeanValue, setRangeMeanValue] = useState(null);
   const [uptime, setUptime] = useState(null);
   const [downtime, setDowntime] = useState(null);
+  const [diagramaState, setDiagramaState] = useState(null);
 
-  const diagrama = new Diagrama();
-  const [blocoAnterior, setBlocoAnterior] = useState(null);
-
-  useEffect(() => {
-    console.log(diagrama)
-  }, [diagrama])
-
-  const criarBloco = (mttr, mttf, tipo) => {
-    const bloco = new Bloco(1, mttr, mttf);
-    //console.log("ANTERIOOOR", blocoAnterior)
+  const criarBloco = (mttr, mttf, tipo, nome, blocoAnterior) => {
+    const bloco = new Bloco(mttf, mttr, nome);
 
     if (blocoAnterior == null) {
       diagrama.iniciar(bloco);
-      setBlocoAnterior(bloco);
     } else {
       if (tipo == 'series') {
         diagrama.adicionarBlocoSerie(bloco, blocoAnterior);
       } else {
-        diagrama.adicionarBlocoParalelo(bloco, blocoAnterior.getPai());
+        if (blocoAnterior.getPai().tipo == 'paralelo') {
+          diagrama.adicionarBlocoParalelo(bloco, blocoAnterior.getPai());
+        } else {
+          diagrama.adicionarBlocoParalelo(bloco, blocoAnterior);
+        }
       }
-      setBlocoAnterior(bloco);
     }
-   /*  diagrama.inicio.filhos.forEach(element => {
-      console.log(element)
-    }); */
-    /* console.log(diagrama) */
+    setDiagramaState(diagrama);
+    atualizarDiagrama(diagrama);
   }
 
   let fileReader;
@@ -169,11 +165,7 @@ export default function Album() {
       repairRate: blocks.getElementsByTagName("repairRate")[0].childNodes[0].nodeValue,
     }
 
-    console.log(block1)
-
-    const loadBlock = (block) => {
-
-    }
+    console.log(block1)   
 
     console.log(xmlDoc)
   }
@@ -186,13 +178,13 @@ export default function Album() {
     }
   }, [selectedFile]);
 
- /*  useEffect(() => {
-    if (selectedDataFile) {
-      fileReaderData = new FileReader();
-      fileReaderData.onloadend = handleFileDataRead;
-      fileReaderData.readAsText(selectedDataFile)
-    }
-  }, [selectedDataFile]) */
+  /*  useEffect(() => {
+     if (selectedDataFile) {
+       fileReaderData = new FileReader();
+       fileReaderData.onloadend = handleFileDataRead;
+       fileReaderData.readAsText(selectedDataFile)
+     }
+   }, [selectedDataFile]) */
 
   const changeHandler = (event) => {
     setSelectedFile(event.target.files[0]);
@@ -202,8 +194,8 @@ export default function Album() {
     setSelectedDataFile(event.target.files[0]);
   };
 
-  const handleSubmission = () => {
-    alert(failureMeanValue + " " + repairMeanValue);
+  const handleSubmission = () => {    
+    alert("Avaliability = " + diagrama.calcularConfiabilidade(repetitionsValue, rangeMeanValue));
   };
 
   const resetFile = () => {
@@ -227,17 +219,31 @@ export default function Album() {
         <div className={classes.heroContent}>
 
           <div style={{ display: 'flex', justifyContent: 'center' }}>
-            <RecursiveTreeView />
+            <RecursiveTreeView
+              diagrama={diagramaState}
+            />
             <div className={classes.heroButtons}>
               <Grid container sm={8} xs={12} style={{ alignSelf: "center" }}>
                 <TextField
                   fullWidth
                   helperText="Enter the number of repetitions"
-                  id="meanValue"
+                  id="repetitionsValue"
                   label="Number of repetitions"
                   size="small"
-                  onChange={(e) => setFailuereMeanValue(e.target.value)}
-                  value={failureMeanValue}
+                  onChange={(e) => setRepetitionsnValue(e.target.value)}
+                  value={repetitionsValue}
+                  variant="outlined"
+                />
+              </Grid>
+              <Grid container sm={8} xs={12} style={{ alignSelf: "center" }}>
+                <TextField
+                  fullWidth
+                  helperText="Enter the range of mean"
+                  id="rangeMeanValue"
+                  label="Range of mean"
+                  size="small"
+                  onChange={(e) => setRangeMeanValue(e.target.value)}
+                  value={rangeMeanValue}
                   variant="outlined"
                 />
               </Grid>
@@ -254,6 +260,7 @@ export default function Album() {
                 <Grid item>
                   <Dialog
                     criarBloco={criarBloco}
+                    diagrama={diagrama}
                   />
                 </Grid>
               </Grid>

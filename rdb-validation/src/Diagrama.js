@@ -1,28 +1,39 @@
 import ArvoreBlocos from './ArvoreBlocos';
 import Bloco from './Bloco';
+
 class Diagrama{
 
     constructor(){
         this.ultimoId   = 0
         this.inicio     = new ArvoreBlocos("serie")
+        this.listaBlocos = []
     }
 
     iniciar(bloco){
         bloco.setId(this.ultimoId + 1)
         this.ultimoId += 1
         bloco.setPai(this.inicio)                           //pai do bloco será a árvore de inicio do diagrama
-        this.inicio.adicionarBloco(bloco)                   //adiciona o primeiro bloco do diagrama
+        this.inicio.adicionarBloco(bloco)     
+        this.listaBlocos.push(bloco)              //adiciona o primeiro bloco do diagrama
     }
 
     adicionarBlocoSerie(bloco, blocoAnterior){
-        if (blocoAnterior.getPai().tipo == "paralelo"){
+        if(blocoAnterior instanceof ArvoreBlocos){
+            bloco.setId(this.ultimoId)
+            this.ultimoId += 1
+            blocoAnterior.adicionarBloco(bloco)
+            bloco.setPai(blocoAnterior)
+            this.listaBlocos.push(bloco)  
+        }
+        else if (blocoAnterior.getPai().tipo == "paralelo"){
             this.ramificar(bloco, blocoAnterior, "serie")
         }else{
             let pai = blocoAnterior.getPai()
             bloco.setId(this.ultimoId + 1)
             this.ultimoId += 1
             bloco.setPai(pai)
-            pai.adicionarBloco(bloco)                           //adiciona o bloco em serie com o bloco anterior
+            pai.adicionarBloco(bloco)   
+            this.listaBlocos.push(bloco)                            //adiciona o bloco em serie com o bloco anterior
         } 
     }
 
@@ -40,6 +51,7 @@ class Diagrama{
             this.ultimoId += 1
             pai.adicionarBloco(bloco)
             bloco.setPai(pai)
+            this.listaBlocos.push(bloco)    
         }
     }
 
@@ -61,20 +73,21 @@ class Diagrama{
     
         bloco.setPai(arv)                              //insere o pai do bloco
         pai.setPai(arv)                                //atualiza o pai do "bloco pai"
+        this.listaBlocos.push(bloco)    
     }
 
     //calcula a confiabilidade do diagrama
-    calcularConfiabilidade(){
+    calcularConfiabilidade(repetitionsValue, rangeMeanValue){
         let inicio = this.inicio.getFilhos()[0]
         if (inicio instanceof Bloco){                           //significa que os 2 primeiros blocos do diagrama estão em serie
-            return this.calcularConfiabilidadeSerie(this.inicio) //então passa a arvore que representa o diagrama
+            return this.calcularConfiabilidadeSerie(this.inicio,repetitionsValue, rangeMeanValue) //então passa a arvore que representa o diagrama
         }else{                                                  //significa que os 2 primeiros blocos do diagrama estão em paralelo
-            return this.calcularConfiabilidadeParalelo(inicio)   //então passa a arvore que representa os blocos em paralelo
+            return this.calcularConfiabilidadeParalelo(inicio, repetitionsValue, rangeMeanValue)   //então passa a arvore que representa os blocos em paralelo
         }
     }
 
     //calcula a confiabilidade dos blocos em paralelo
-    calcularConfiabilidadeParalelo(arv){
+    calcularConfiabilidadeParalelo(arv, repetitionsValue, rangeMeanValue){
         let resultado = 1
         arv.getFilhos().forEach(bloco => {
             
@@ -84,7 +97,7 @@ class Diagrama{
                 resultado = resultado * (1- this.calcularConfiabilidadeParalelo(bloco))
             }
             else{
-                resultado = resultado * (1 - bloco.getConfiabilidade())
+                resultado = resultado * (1 - bloco.getConfiabilidade(repetitionsValue, rangeMeanValue))
             }
         });
 
@@ -92,16 +105,18 @@ class Diagrama{
     }
 
     //calcula a confiabilidade dos blocos em serie
-    calcularConfiabilidadeSerie(arv){
+    calcularConfiabilidadeSerie(arv, repetitionsValue, rangeMeanValue){
         let resultado = 1
 
         arv.getFilhos().forEach(bloco => {
             
             if (bloco instanceof ArvoreBlocos && bloco.getTipo() == "paralelo"){
                 resultado = resultado * this.calcularConfiabilidadeParalelo(bloco)
-            }else{
-                resultado = resultado * bloco.getConfiabilidade()
+            }else{                
+                resultado = resultado * bloco.getConfiabilidade(repetitionsValue, rangeMeanValue)
+                console.log(bloco.getConfiabilidade(repetitionsValue, rangeMeanValue))
             }
+            console.log(resultado)
         });
 
         return resultado

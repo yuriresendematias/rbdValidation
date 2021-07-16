@@ -2,13 +2,13 @@ import ArvoreBlocos from './ArvoreBlocos';
 
 export default class Bloco{
 
-    constructor(mttf, mttr){
+    constructor(mttf, mttr, nome){
         this.id = 0
-        this.confiabilidade = mttf / (mttf + mttr);
-        this.mttf   = mttf;
-        this.mttr   = mttr;
+        this.confiabilidade = parseInt(mttf) / (parseInt(mttf) + parseInt(mttr));
+        this.mttf   = parseInt(mttf);
+        this.mttr   = parseInt(mttf);
         this.pai    = null
-        this.filhos  = []
+        this.label = nome
     }
 
     getId(){
@@ -41,7 +41,28 @@ export default class Bloco{
         }
     }
 
-    getConfiabilidade(){
-        return this.confiabilidade
+    getConfiabilidade(repetitionsValue, rangeMeanValue){
+        if(rangeMeanValue == 0){
+            return this.confiabilidade;
+        }
+                
+        let mttf = 0;
+        let mttr = 0;
+        let repetitions = repetitionsValue;
+        while(repetitions > 0){
+            mttf +=  Math.random() * (this.mttf+rangeMeanValue - (this.mttf-rangeMeanValue < 0 ? 0 : this.mttf-rangeMeanValue)) + this.mttf-rangeMeanValue
+            mttr +=  Math.random() * (this.mttr+rangeMeanValue - (this.mttr-rangeMeanValue < 0 ? 0 : this.mttr-rangeMeanValue)) + this.mttr-rangeMeanValue
+            repetitions--
+        }
+        console.log(mttf)
+        console.log(mttr)
+        mttf = mttf/repetitionsValue;
+        mttr = mttr/repetitionsValue;
+        console.log(mttf)
+        console.log(mttr)
+        let confiabilidade = mttf / (mttf + mttr);
+        console.log(confiabilidade)
+        return confiabilidade
     }
+
 }
